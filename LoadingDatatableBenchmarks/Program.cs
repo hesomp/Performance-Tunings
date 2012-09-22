@@ -15,26 +15,38 @@ namespace LoadingDatatableBenchmarks
         
         static void Main(string[] args)
         {
-            var data = GetData();
-            var numOfColumns = data[0].Split().Length;
-            var numOfRows = data.Length;
           
-            var sw = new Stopwatch();
-            
-            sw.Start();
-            LoadDatatableSelectMethod(data, GetDataTable(numOfColumns, numOfRows));
-            sw.Stop();
-            Console.WriteLine(String.Format("Loading datatable using select method: {0}ms" ,sw.ElapsedMilliseconds));
-            sw.Restart();
-            LoadDatatableForMethod(data, GetDataTable(numOfColumns, numOfRows));
-            Console.WriteLine(String.Format("Loading datatable using for loop method: {0}ms", sw.ElapsedMilliseconds));
-            sw.Restart();
-            LoadDatatableWithArrays(data, GetDataTable(numOfColumns, numOfRows));
-            sw.Stop();
-            Console.WriteLine(String.Format("Loading datatable using arrays: {0}ms", sw.ElapsedMilliseconds));
+            for(int i = 0; i < 5; i++){
+                RunTest(i);
+            }
+                   
 
             Console.WriteLine("Press any key to quit");
             Console.ReadKey();
+        }
+
+
+        static private void RunTest(int multiplier){
+            List<string> data = GetData();
+
+            for (int i = 0; i < multiplier; i++)
+            {
+                data.AddRange(data);
+            }
+
+            var numOfColumns = data[0].Split().Length;
+            var numOfRows = data.Count;
+          
+            var sw = new Stopwatch();
+            Console.Write(numOfRows + ",");
+            sw.Start();
+            LoadDatatableSelectMethod(data, GetDataTable(numOfColumns, numOfRows));
+            sw.Stop();
+            Console.Write(sw.ElapsedMilliseconds + ",");
+            sw.Restart();
+            LoadDatatableWithArrays(data, GetDataTable(numOfColumns, numOfRows));
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds);
         }
 
 
@@ -65,25 +77,25 @@ namespace LoadingDatatableBenchmarks
         }
 
 
-        static private string[] GetData()
+        static private List<string> GetData()
         {
-            string[] retVal = null;
+            List<string> retVal = null;
 
             using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("LoadingDatatableBenchmarks.marketing.data"))
             using (StreamReader reader = new StreamReader(stream))
             {
                 string result = reader.ReadToEnd();
-                retVal = result.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                retVal = result.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries).ToList();
             }
 
             return retVal;
         }
 
 
-        static private void LoadDatatableSelectMethod(string[] data, DataTable dt)
+        static private void LoadDatatableSelectMethod(List<string> data, DataTable dt)
         {
 
-            for (int i = 0; i <= data.Length - 1; i++)
+            for (int i = 0; i <= data.Count - 1; i++)
             {
                 var row = dt.Select(string.Format("key='{0}'", i));
 
@@ -101,10 +113,10 @@ namespace LoadingDatatableBenchmarks
         }
 
 
-        static private void LoadDatatableForMethod(string[] data, DataTable dt)
+        static private void LoadDatatableForMethod(List<string> data, DataTable dt)
         {
 
-            for (int i = 0; i <= data.Length - 1; i++)
+            for (int i = 0; i <= data.Count - 1; i++)
             {
                 DataRow row = null;
                 foreach (DataRow dr in dt.Rows)
@@ -130,8 +142,8 @@ namespace LoadingDatatableBenchmarks
 
         }
 
-        
-        static private void LoadDatatableWithArrays(string[] data, DataTable dt)
+
+        static private void LoadDatatableWithArrays(List<string> data, DataTable dt)
         {
 
             var rows = new List<object[]>();
